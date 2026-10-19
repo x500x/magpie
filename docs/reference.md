@@ -2157,6 +2157,11 @@ Termux uses the Android terminal build: the installer puts it in
 `go build` or `go install`, pass `-tags nogui`; use `magpie web` or
 `magpie tui` for the interface. `magpie autostart on` requires Termux:Boot.
 
+Android has no `/etc/resolv.conf`, so this build reads the name servers
+from `$PREFIX/etc/resolv.conf` instead, which `pkg install resolv-conf`
+writes; a Termux without it reaches no vendor, and magpie says so and names
+the package. Termux's own `go` package patches Go's resolver the same way.
+
 ### As a background service
 
 `magpie daemon install` runs `magpie serve` as a service of your own, with
