@@ -27,6 +27,7 @@ import (
 	"github.com/yetone/magpie/internal/provider"
 	"github.com/yetone/magpie/internal/sessions"
 	"github.com/yetone/magpie/internal/settings"
+	"github.com/yetone/magpie/internal/termuxdns"
 	"github.com/yetone/magpie/internal/tui"
 	"github.com/yetone/magpie/internal/update"
 )
@@ -156,6 +157,10 @@ var (
 // Main runs magpie with os.Args, at the version the build was stamped with.
 func Main(v string) {
 	version = v
+	// before anything looks a name up: on Termux, Go's resolver finds no
+	// resolv.conf where it looks and falls back to this machine's port 53,
+	// where nothing answers (#2872)
+	noDNS := termuxdns.Install()
 	// before anything reads or writes a file: no home, or a relative one,
 	// would put the agents' configs and magpie's keys under the working
 	// folder. What needs no file still answers (magpie version in a
@@ -174,6 +179,9 @@ func Main(v string) {
 		}
 		fmt.Fprintln(os.Stderr, "magpie:", err)
 		os.Exit(1)
+	}
+	if noDNS != "" {
+		fmt.Fprintln(os.Stderr, "magpie:", noDNS)
 	}
 	slices.Sort(ignored)
 	for _, v := range ignored {
